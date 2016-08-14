@@ -10,6 +10,7 @@ repositories {
 
 dependencies {
 	compile "org.nanohttpd:nanohttpd:2.2.0"
+	compile "commons-io:commons-io:2.5"
 	exampleCompile sourceSets.main.output
 }
 

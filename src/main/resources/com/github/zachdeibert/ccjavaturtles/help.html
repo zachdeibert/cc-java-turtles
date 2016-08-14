@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<title>
+			Turtle Start Guide
+		</title>
+	</head>
+	<body>
+		<h1>
+			Turtle Start Guide
+		</h1>
+		<p>
+			Place your turtle, then type in the following:
+		</p>
+		<pre>&gt; edit download
+local out = fs.open("startup", "w")
+local in  = http.get("http://127.0.0.1:{{ port }}/lua")
+out.write(in.readAll())
+in.close()
+out.close()
+</pre>
+		<p>
+			Then, press <i>ctrl</i>, then <i>enter</i>, then <i>ctrl</i>, <i>left arrow</i>, <i>enter</i> to save and exit the editor.
+			Finally, type in the following:
+		</p>
+		<pre>&gt; download
+&gt; reboot
+</pre>
+	</body>
+</html>
