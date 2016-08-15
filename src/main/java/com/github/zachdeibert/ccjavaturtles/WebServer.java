@@ -2,7 +2,7 @@ package com.github.zachdeibert.ccjavaturtles;
 
 import java.io.InputStream;
 import java.nio.charset.Charset;
-import java.util.Scanner;
+import java.util.HashMap;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.logging.log4j.LogManager;
@@ -29,46 +29,47 @@ class WebServer extends NanoHTTPD {
 					return newFixedLengthResponse(Status.OK, "text/x-lua",
 							IOUtils.toString(in, Charset.defaultCharset()));
 				}
-			} else if ( session.getUri().equals("/register") ) {
-				try ( InputStream in = session.getInputStream() ) {
-					try ( Scanner scan = new Scanner(in) ) {
-						String id = scan.nextLine();
-						String version = scan.nextLine();
-						server.registerTurtle(id, version);
+			} else {
+				session.parseBody(new HashMap<String, String>());
+				String queryString = session.getQueryParameterString();
+				String[] body = queryString == null ? new String[0] : queryString.split("\n");
+				if ( session.getUri().equals("/register") ) {
+					if ( body.length != 2 ) {
+						log.warn("Invalid message body");
+					} else {
+						server.registerTurtle(body[0], body[1]);
 						return newFixedLengthResponse(Status.OK, "text/plain", "success");
 					}
-				}
-			} else if ( session.getUri().equals("/pull") ) {
-				try ( InputStream in = session.getInputStream() ) {
-					String id = IOUtils.toString(in, Charset.defaultCharset());
-					StringBuilder resp = new StringBuilder();
-					for ( TurtleCommand cmd : server.pullCommands(id) ) {
-						resp.append(cmd.getId());
-						resp.append(':');
-						resp.append(cmd.getApi());
-						resp.append('.');
-						resp.append(cmd.getMethod());
-						for ( Object arg : cmd.getArguments() ) {
-							resp.append(',');
-							resp.append(arg);
+				} else if ( session.getUri().equals("/pull") ) {
+					if ( body.length != 1 ) {
+						log.warn("invalid message body");
+						return newFixedLengthResponse(Status.OK, "text/plain", "");
+					} else {
+						StringBuilder resp = new StringBuilder();
+						for ( TurtleCommand cmd : server.pullCommands(body[0]) ) {
+							resp.append(cmd.getId());
+							resp.append(':');
+							resp.append(cmd.getApi());
+							resp.append('.');
+							resp.append(cmd.getMethod());
+							for ( Object arg : cmd.getArguments() ) {
+								resp.append(',');
+								resp.append(arg);
+							}
+							resp.append('\n');
 						}
-						resp.append('\n');
+						return newFixedLengthResponse(Status.OK, "text/plain", resp.toString());
 					}
-					return newFixedLengthResponse(Status.OK, "text/plain", resp.toString());
-				}
-			} else if ( session.getUri().equals("/post") ) {
-				try ( InputStream in = session.getInputStream() ) {
-					try ( Scanner scan = new Scanner(in) ) {
-						String turtleId = scan.nextLine();
-						String commandId = scan.nextLine();
-						String result = scan.nextLine();
-						server.postResult(turtleId, commandId, result);
+				} else if ( session.getUri().equals("/post") ) {
+					if ( body.length != 3 ) {
+						log.warn("Invalid message body");
+					} else {
+						server.postResult(body[0], body[1], body[2]);
 						return newFixedLengthResponse(Status.OK, "text/plain", "OK");
 					}
 				}
-			} else {
-				return newFixedLengthResponse(Status.NOT_FOUND, "text/plain", "404 Not Found");
 			}
+			return newFixedLengthResponse(Status.NOT_FOUND, "text/plain", "404 Not Found");
 		} catch ( Throwable t ) {
 			log.catching(t);
 			return newFixedLengthResponse(Status.INTERNAL_ERROR, "text/plain", t.toString());

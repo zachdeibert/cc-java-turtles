@@ -1,20 +1,26 @@
 id = os.getComputerID()
 version = os.version()
-server = "127.0.0.1"
+server = "127.0.0.1:8080"
 
 function readConfig()
 	if fs.exists("download") then
 		local hnd = fs.open("download", "r")
 		local content = hnd.readAll()
 		hnd.close()
-		local it = string.gmatch(content, "server = \".*\"")
+		local it = string.gmatch(content, "server = \"[^\"]+\"")
 		local line = it()
-		server = string.sub(line, 7, -1)
+		server = string.sub(line, 11, -2)
 	end
 end
 
+function printConfig()
+	print("[DEBUG] Turtle ID = " .. id)
+	print("[DEBUG] ComputerCraft Version = " .. version)
+	print("[DEBUG] Server IP = " .. server)
+end
+
 function registerTurtle()
-	local hnd = http.post("http://" .. server .. "/register", id .. "\n" .. version)
+	local hnd = http.post("http://" .. server .. "/register", id .. "\n" .. version .. "\n")
 	local resp = hnd.readAll()
 	hnd.close()
 	if resp == "success" then
@@ -99,9 +105,9 @@ function handleWindowApi(method, args)
 end
 
 function handleEvent(event)
-	local args = string.gmatch(resp, "[^,]+")
+	local args = string.gmatch(event, "[^,]+")
 	local cmd = args()
-	local parts = cmd.gmatch(resp, "[^.]+")
+	local parts = cmd.gmatch(cmd, "[^.]+")
 	local api = parts()
 	local method = parts()
 	if api == "commands" then
@@ -144,19 +150,20 @@ function handleEvent(event)
 end
 
 function handleEvents()
-	local hnd = http.post("http://" .. server .. "/pull", id)
+	local hnd = http.post("http://" .. server .. "/pull", id .. "\n")
 	local resp = hnd.readAll()
 	for ev in string.gmatch(resp, "[^\n]+") do
 		local it = string.gmatch(ev, "[^:]+")
 		local id = it()
 		local event = it()
 		local res = handleEvent(event)
-		http.post("http://" .. server .. "/push", id .. "\n" .. event .. "\n" .. res)
+		http.post("http://" .. server .. "/push", id .. "\n" .. event .. "\n" .. res .. "\n")
 	end
 end
 
 function main()
 	readConfig()
+	printConfig()
 	if registerTurtle() then
 		while true do
 			handleEvents()
