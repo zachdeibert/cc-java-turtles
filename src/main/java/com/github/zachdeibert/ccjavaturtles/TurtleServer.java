@@ -69,8 +69,20 @@ public class TurtleServer {
 		return turtles.values().toArray(new Turtle[0]);
 	}
 
+	/**
+	 * Gets a turtle from its id
+	 * 
+	 * @param id
+	 *            The turtle's id
+	 * @return The turtle
+	 * @since 1.0
+	 */
+	public Turtle getTurtle(String id) {
+		return turtles.get(id);
+	}
+
 	void registerTurtle(String turtleId, String version) {
-		Turtle turtle = new Turtle();
+		Turtle turtle = new Turtle(this);
 		turtle.setId(turtleId);
 		turtle.setVersion(version);
 		turtles.put(turtleId, turtle);
@@ -122,6 +134,7 @@ public class TurtleServer {
 			throw new IllegalArgumentException("Port is not a valid port number");
 		}
 		this.port = port;
+		InstanceManager.registerServer(this);
 	}
 
 	/**
@@ -162,6 +175,7 @@ public class TurtleServer {
 		turtles = new HashMap<String, Turtle>();
 		commands = new HashMap<Integer, TurtleCommand>();
 		listeners = new ArrayList<ITurtleListener>();
+		InstanceManager.registerServer(this);
 		DebugLogger.register(this);
 	}
 }

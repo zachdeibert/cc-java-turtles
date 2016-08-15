@@ -4,6 +4,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 /**
  * Represents the connection to a turtle in the world
  * 
@@ -12,6 +15,7 @@ import java.util.List;
  * @version 1.0
  */
 public class Turtle {
+	private final TurtleServer server;
 	private String id;
 	private String version;
 	private volatile List<TurtleCommand> commands;
@@ -78,6 +82,16 @@ public class Turtle {
 		return commands.remove(cmd);
 	}
 
+	/**
+	 * Gets the logger for a turtle
+	 * 
+	 * @return The logger that will log to the turtle's screen
+	 * @since 1.0
+	 */
+	public Logger getLogger() {
+		return LogManager.getLogger(String.format("com.github.zachdeibert.ccjavaturtles.turtles.Turtle%sp%d", getId(), server.getPort()));
+	}
+
 	private void initCommandList() {
 		commands = Collections.synchronizedList(new ArrayList<TurtleCommand>());
 	}
@@ -88,7 +102,8 @@ public class Turtle {
 		return commands;
 	}
 
-	Turtle() {
+	Turtle(TurtleServer server) {
 		initCommandList();
+		this.server = server;
 	}
 }

@@ -2,7 +2,6 @@ package com.github.zachdeibert.ccjavaturtles.example;
 
 import com.github.zachdeibert.ccjavaturtles.Turtle;
 import com.github.zachdeibert.ccjavaturtles.TurtleAdapter;
-import com.github.zachdeibert.ccjavaturtles.TurtleCommand;
 import com.github.zachdeibert.ccjavaturtles.TurtleServer;
 
 public class Main {
@@ -12,7 +11,7 @@ public class Main {
 		server.addListener(new TurtleAdapter() {
 			@Override
 			public void turtleConnected(Turtle turtle) {
-				turtle.sendCommand(new TurtleCommand("test", "print", "[INFO] Hello, world!"));
+				turtle.getLogger().info("Hello, world!");
 			}
 		});
 		server.run();
