@@ -1,6 +1,10 @@
 package com.github.zachdeibert.ccjavaturtles;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import fi.iki.elonen.NanoHTTPD;
 
@@ -12,9 +16,78 @@ import fi.iki.elonen.NanoHTTPD;
  * @version 1.0
  */
 public class TurtleServer {
+	private final Map<String, Turtle> turtles;
+	private final Map<Integer, TurtleCommand> commands;
+	private final List<ITurtleListener> listeners;
 	private int port;
 	private boolean running;
 	private WebServer server;
+
+	/**
+	 * Adds a listener to this command
+	 * 
+	 * @param listener
+	 *            The listener
+	 * @since 1.0
+	 */
+	public void addListener(ITurtleListener listener) {
+		listeners.add(listener);
+	}
+
+	/**
+	 * Removes a listener from this command
+	 * 
+	 * @param listener
+	 *            The listener
+	 * @since 1.0
+	 */
+	public void removeListener(ITurtleListener listener) {
+		listeners.remove(listener);
+	}
+
+	/**
+	 * Gets an array of all of the listeners to this command
+	 * 
+	 * @return The listeners to this command
+	 * @since 1.0
+	 */
+	public ITurtleListener[] getListeners() {
+		return listeners.toArray(new ITurtleListener[0]);
+	}
+
+	/**
+	 * Gets an array of all of the turtles
+	 * 
+	 * @return The turtles
+	 * @since 1.0
+	 */
+	public Turtle[] getTurtles() {
+		return turtles.values().toArray(new Turtle[0]);
+	}
+
+	void registerTurtle(String turtleId, String version) {
+		Turtle turtle = new Turtle();
+		turtle.setId(turtleId);
+		turtle.setVersion(version);
+		turtles.put(turtleId, turtle);
+		for ( ITurtleListener listener : getListeners() ) {
+			listener.turtleConnected(turtle);
+		}
+	}
+
+	TurtleCommand[] pullCommands(String turtleId) {
+		Turtle turtle = turtles.get(turtleId);
+		List<TurtleCommand> pending = turtle.onCommandSend();
+		for ( TurtleCommand cmd : pending ) {
+			commands.put(cmd.getId(), cmd);
+		}
+		return pending.toArray(new TurtleCommand[0]);
+	}
+
+	void postResult(String turtleId, String commandId, String result) {
+		TurtleCommand cmd = commands.get(commandId);
+		cmd.setResult(result);
+	}
 
 	/**
 	 * Gets the port number the server is running on
@@ -71,7 +144,18 @@ public class TurtleServer {
 			throw new IllegalStateException("Server is already running");
 		}
 		running = true;
-		server = new WebServer(getPort());
+		server = new WebServer(getPort(), this);
 		server.start(NanoHTTPD.SOCKET_READ_TIMEOUT, false);
+	}
+
+	/**
+	 * Default constructor
+	 * 
+	 * @since 1.0
+	 */
+	public TurtleServer() {
+		turtles = new HashMap<String, Turtle>();
+		commands = new HashMap<Integer, TurtleCommand>();
+		listeners = new ArrayList<ITurtleListener>();
 	}
 }

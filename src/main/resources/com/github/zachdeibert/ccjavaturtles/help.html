@@ -14,8 +14,9 @@
 			Place your turtle, then type in the following:
 		</p>
 		<pre>&gt; edit download
+server = "127.0.0.1:{{ port }}"
 local out = fs.open("startup", "w")
-local in  = http.get("http://127.0.0.1:{{ port }}/lua")
+local in  = http.get("http://" .. server .. "/lua")
 out.write(in.readAll())
 in.close()
 out.close()
