@@ -5,15 +5,19 @@ import java.nio.charset.Charset;
 import java.util.Scanner;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import fi.iki.elonen.NanoHTTPD;
 import fi.iki.elonen.NanoHTTPD.Response.Status;
 
 class WebServer extends NanoHTTPD {
+	private static final Logger log = LogManager.getLogger();
 	private TurtleServer server;
 
 	@Override
 	public Response serve(IHTTPSession session) {
+		log.debug("{} {}", session.getMethod(), session.getUri());
 		try {
 			if ( session.getUri().equals("/") ) {
 				try ( InputStream in = WebServer.class.getResourceAsStream("help.html") ) {
@@ -66,7 +70,7 @@ class WebServer extends NanoHTTPD {
 				return newFixedLengthResponse(Status.NOT_FOUND, "text/plain", "404 Not Found");
 			}
 		} catch ( Throwable t ) {
-			t.printStackTrace();
+			log.catching(t);
 			return newFixedLengthResponse(Status.INTERNAL_ERROR, "text/plain", t.toString());
 		}
 	}

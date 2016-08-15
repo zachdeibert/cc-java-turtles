@@ -6,6 +6,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import fi.iki.elonen.NanoHTTPD;
 
 /**
@@ -16,6 +19,7 @@ import fi.iki.elonen.NanoHTTPD;
  * @version 1.0
  */
 public class TurtleServer {
+	private static final Logger log = LogManager.getLogger();
 	private final Map<String, Turtle> turtles;
 	private final Map<Integer, TurtleCommand> commands;
 	private final List<ITurtleListener> listeners;
@@ -143,6 +147,7 @@ public class TurtleServer {
 		if ( isRunning() ) {
 			throw new IllegalStateException("Server is already running");
 		}
+		log.info("Starting server on http://localhost:{}/", getPort());
 		running = true;
 		server = new WebServer(getPort(), this);
 		server.start(NanoHTTPD.SOCKET_READ_TIMEOUT, false);
@@ -157,5 +162,6 @@ public class TurtleServer {
 		turtles = new HashMap<String, Turtle>();
 		commands = new HashMap<Integer, TurtleCommand>();
 		listeners = new ArrayList<ITurtleListener>();
+		DebugLogger.register(this);
 	}
 }

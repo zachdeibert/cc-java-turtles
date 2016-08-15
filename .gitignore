@@ -18,3 +18,7 @@ gradle-app.setting
 .project
 .classpath
 bin/
+
+# Logs
+*.log
+*.log.gz
